@@ -9,13 +9,13 @@ import base64
 import datetime
 
 class Creator:
-    def __init__(self) -> None:        
-        with open('images/bg.png', 'rb') as f:
-            self.bg = Image.open(f).convert('RGBA')       
-        self.faces = [ f'images/faces/{x}' for x in os.listdir('images/faces') if x.endswith('.png') ]
-        self.eyes = [ f'images/eyes/{x}' for x in os.listdir('images/eyes') if x.endswith('.png') ] 
-        self.mouths = [ f'images/mouths/{x}' for x in os.listdir('images/mouths') if x.endswith('.png') ]
-        self.hats = [ f'images/hats/{x}' for x in os.listdir('images/hats') if x.endswith('.png') ]       
+    def __init__(self) -> None:
+        self.layer_foler = 'static/images/layers'        
+        self.bgs = [ f'static/images/layers/bgs/{x}' for x in os.listdir('static/images/layers/bgs') if x.endswith('.png') ]
+        self.faces = [ f'static/images/layers/faces/{x}' for x in os.listdir('static/images/layers/faces') if x.endswith('.png') ]
+        self.eyes = [ f'static/images/layers/eyes/{x}' for x in os.listdir('static/images/layers/eyes') if x.endswith('.png') ] 
+        self.mouths = [ f'static/images/layers/mouths/{x}' for x in os.listdir('static/images/layers/mouths') if x.endswith('.png') ]
+        self.hats = [ f'static/images/layers/hats/{x}' for x in os.listdir('static/images/layers/hats') if x.endswith('.png') ]       
 
     def __enter__(self) -> None:
         return self
@@ -23,18 +23,37 @@ class Creator:
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         pass
 
+    def get_layers(self) -> list:
+        return [
+            {'name': 'bgs','items': self.bgs},  
+            {'name': 'faces','items': self.faces}, 
+            {'name': 'eyes','items': self.eyes}, 
+            {'name': 'mouths','items': self.mouths}, 
+            {'name': 'hats','items': self.hats}
+        ]       
+    
+    def upload_layer(self,form,file) -> dict:              
+        file['image'].save(f'{self.layer_foler}/{form["layer"]}/{uuid4().hex}.png')
+        return {'success': True}
+
+    def delete_layer(self,location) -> dict:
+        os.remove(f'{location.get("image")}')        
+        return {'success': True}
+
     def generate_nft(self) -> PILImage:
+        bg = random.choice(self.bgs)
         face = random.choice(self.faces)
         eye = random.choice(self.eyes)
         mouth = random.choice(self.mouths)
         hat = random.choice(self.hats)
 
+        bg_img = Image.open(bg).convert('RGBA')
         face_img = Image.open(face).convert('RGBA')
         eye_img = Image.open(eye).convert('RGBA')
         mouth_img = Image.open(mouth).convert('RGBA')
         hat_img = Image.open(hat).convert('RGBA')
 
-        com1 = Image.alpha_composite(self.bg, face_img)  
+        com1 = Image.alpha_composite(bg_img, face_img)  
         com2 = Image.alpha_composite(com1, eye_img)
         com3 = Image.alpha_composite(com2, mouth_img)
         com4 = Image.alpha_composite(com3, hat_img)
@@ -63,8 +82,4 @@ class Creator:
                 'created_at' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             })
         return nfts
-    
-nfts = Creator().mint_nft(2)
-print(nfts[0]["image"] == nfts[1]["image"])
-
         
