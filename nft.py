@@ -1,5 +1,4 @@
 from PIL import Image
-from PIL.Image import Image as PILImage
 from uuid import uuid4
 import os
 import random
@@ -40,7 +39,7 @@ class Creator:
         os.remove(f'{location.get("image")}')        
         return {'success': True}
 
-    def generate_nft(self) -> PILImage:
+    def generate_nft(self):
         bg = random.choice(self.bgs)
         face = random.choice(self.faces)
         eye = random.choice(self.eyes)
@@ -60,12 +59,12 @@ class Creator:
 
         return com4
 
-    def generate_base64(self, nft: PILImage) -> str:
+    def generate_base64(self, nft) -> str:
         buffer = BytesIO()
         nft.save(buffer, format='PNG')
         return f"data:image/jpeg;base64,{base64.b64encode(buffer.getvalue()).decode('utf-8')}"
     
-    def generate_hash(self, img: PILImage) -> str:
+    def generate_hash(self, img) -> str:
         img_bytes = img.tobytes()
         hash_object = hashlib.sha256(img_bytes)
         hex_dig = hash_object.hexdigest()
