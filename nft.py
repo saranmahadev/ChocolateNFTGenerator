@@ -39,6 +39,7 @@ class Creator:
         os.remove(f'{location.get("image")}')        
         return {'success': True}
 
+
     def generate_nft(self):
         bg = random.choice(self.bgs)
         face = random.choice(self.faces)
