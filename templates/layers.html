@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <label for="layer">Layer:</label>
+  <select name="layer" id="layer">
+    <option value="" selected disabled>None</option>
+  </select>
+  <input type="file" id="file" name="image" hidden>
+  <button onclick="document.getElementById('file').click()">Upload</button>
+    
+  <div class="nfts">    
+  </div>
+
+  <script>
+    var layers;
+    
+    fetch('layers')
+    .then(res => res.json())
+    .then(data => {
+      const select =  document.querySelector('#layer');
+      data.forEach(layer => {
+        const option = document.createElement('option');
+        option.value = layer.name;     
+        option.innerText = layer.name.charAt(0).toUpperCase() + layer.name.slice(1);
+        select.appendChild(option);
+      });
+      layers = data;
+    });
+    
+    document.querySelector('#layer').addEventListener('change', (e) => {  
+      e.preventDefault();
+      document.querySelector('.nfts').innerHTML = '';    
+      layers.forEach(element => {
+        if(element.name ==e.target.value){
+          element.items.forEach(item => {
+            const nft = document.createElement('div');
+            nft.className = 'nft';            
+
+            const img = document.createElement('img');
+            img.src = `/${item}`;
+            
+            deletebtn = document.createElement('button');
+            deletebtn.innerText = 'Delete';
+            deletebtn.onclick = () => {
+              fetch(`delete?image=${item}`)
+              .then(res => res.json())
+              .then(data => {
+                if(data.success){
+                  window.location.reload();
+                }else{
+                  alert('Failed to delete');
+                }
+              });
+            } 
+            
+            nft.appendChild(img);
+            nft.appendChild(deletebtn);
+
+            document.querySelector('.nfts').appendChild(nft);
+          });
+        }
+      });
+    });
+    
+    document.querySelector('#file').addEventListener('change', (e) => {
+      e.preventDefault();   
+      const formData = new FormData();      
+      formData.append('image', e.target.files[0]);
+      formData.append('layer', document.querySelector('#layer').value);
+      if(document.querySelector('#layer').value === ''){
+        alert('Please select a layer');     
+        document.querySelector('#file').value = '';
+        return;
+      }else{
+        fetch('upload', {
+          method: 'POST',
+          body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+          console.log(data);
+          if(data.success){
+            alert('Uploaded..!');  
+            window.location.reload();
+          }else{
+            alert('Failed to upload');
+          }
+        });
+        document.querySelector('#file').value = '';
+      }
+    });
+  
+    
+  </script>
+
+  
+</body>
+</html>
